@@ -30,9 +30,15 @@ public class ControladorPrestamo {
 		return new ModelAndView("listarprestamos",modelo);
 	}
 	
-	@RequestMapping("/crearprestamo")
-	public ModelAndView crearPrestamo() {
+	@RequestMapping(path = "/crearprestamo", method = RequestMethod.POST)
+	public ModelAndView crearPrestamo(@ModelAttribute ("prestamo") Prestamo prestamo) {
 		ModelMap modelo = new ModelMap();
+		Prestamo nuevoPrestamo = new Prestamo();
+		
+		modelo.put("cuota", nuevoPrestamo.getCuota());
+		modelo.put("valor", nuevoPrestamo.getValor());
+		modelo.put("interes", nuevoPrestamo.getInteres());
+		
 		return new ModelAndView("crearprestamo", modelo);		
 	}
 }

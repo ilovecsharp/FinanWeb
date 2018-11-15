@@ -21,7 +21,7 @@
 			    	<form:form action="listarprestamos" modelAttribute="prestamo" method="POST" class="form-horizontal" role="form">
 					  
 					  <label class="col-lg-3 control-label">Cuotas:</label>
-					  	  <select id="cuotas" name="cuotas" class="form-control">
+					  	  <select id="cuota" name="cuota" class="form-control">
 							  <option>6</option>
 							  <option>12</option>
 							  <option>24</option>
