@@ -17,9 +17,8 @@ public class Prestamo {
 	private Long idPrestamo;
 	private Integer cuotas;
 	private Integer valor;
-	private Long idAfiliado;
-	
 	private double interes;
+	private String estado; // si el prestamo fue cancelado, refinanciado u otros.
 	
 	@ManyToOne
 	private Financiera financiera;
@@ -30,12 +29,6 @@ public class Prestamo {
 	@OneToMany(cascade = CascadeType.ALL)
 	private List<Cuota> cuota;
 	
-	public Long getIdAfiliado() {
-		return idAfiliado;
-	}
-	public void setIdAfiliado(Long idAfiliado) {
-		this.idAfiliado = idAfiliado;
-	}	
 	public Long getIdPrestamo() {
 		return idPrestamo;
 	}
@@ -53,6 +46,13 @@ public class Prestamo {
 	}
 	public void setValor(Integer valor) {
 		this.valor = valor;
+	}
+	
+	public String getEstado() {
+		return estado;
+	}
+	public void setEstado(String estado) {
+		this.estado = estado;
 	}
 	public Afiliado getAfiliado() {
 		return afiliado;

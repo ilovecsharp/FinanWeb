@@ -2,6 +2,7 @@ package ar.edu.unlam.tallerweb1.modelo;
 
 import java.util.Date;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -14,14 +15,14 @@ public class Cuota {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long idCuota;
-	private double monto; //creo que este tiene que ser capital
-	private double montoTotal; // es la suma de capital e interes mensual
-	private double interes; // es solo el interes mensula
+	private double monto; //es el fraccionado del capital de prestamo en la cantidad de cuotas que fue establecido.
+	private double montoTotal; // capital fraccionado + interes faccionado.
+	private double interes; // es el nomto del interes de prestamo pero fraccionado en cuotas.
 	private boolean estado;
 	private Date fechaDePago;
 	private Date fechaDeVencimiento;
 	
-	@ManyToOne
+	@ManyToOne(cascade=CascadeType.ALL)
 	private Prestamo prestamo;
 
 	public Long getIdCuota() {

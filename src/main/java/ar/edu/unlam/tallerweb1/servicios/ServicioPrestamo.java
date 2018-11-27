@@ -7,5 +7,12 @@ import ar.edu.unlam.tallerweb1.modelo.Prestamo;
 public interface ServicioPrestamo {
 
 	List<Prestamo> consultarPrestamo();
-
+	
+	Prestamo consultarUnPrestamo(Long idPrestamo);
+	
+	void crearNuevoPrestamo(Prestamo prestamoRef);
+	
+	List<Prestamo> consultarPrestamo(Long dni);
+	
+	void modificarPrestamo(Prestamo prestamo);
 }

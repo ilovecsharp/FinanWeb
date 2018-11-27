@@ -12,7 +12,6 @@ import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import ar.edu.unlam.tallerweb1.modelo.Afiliado;
@@ -49,9 +48,6 @@ public class ControladorPrestamo {
 		ModelMap modelo = new ModelMap();
 		
 		Prestamo prestamo = new Prestamo();
-		
-		List<Afiliado> afiliados=servicioAfiliado.consultarListaAfiliado();
-		modelo.put("afiliados", afiliados);
 		modelo.put("prestamo", prestamo);
 		return new ModelAndView("crearprestamo", modelo);		
 	}
@@ -65,15 +61,108 @@ public class ControladorPrestamo {
 		// calculamos el valor de la cuota mensual.
 		double montoMensual = nprestamo.getValor()/nprestamo.getCuotas();
 		// calculamos el valor mensual de interes (el interes es igual para todos las cuotas)
-		double valorInteres = nprestamo.getValor() * (nprestamo.getInteres()/100);
+		double valorInteres = nprestamo.getValor() * nprestamo.getInteres();
 		// capturamos la fecha actual
 		double total = montoMensual + valorInteres;
 		
 		Calendar fechven = Calendar.getInstance();
 		
 		List<Cuota> cuotas = new ArrayList<Cuota>();
-		
+		//// CUOTA DE PRUEBA
+//		Cuota lcuota=new Cuota();
+//		fechven.add(Calendar.DAY_OF_YEAR, 30);
+//		lcuota.setMonto(montoMensual);
+//		lcuota.setInteres(valorInteres);
+//		lcuota.setMontoTotal(total);
+//		lcuota.setEstado(false);
+//		lcuota.setFechaDeVencimiento(fechven.getTime());
+//		lcuota.setPrestamo(nprestamo);
+//		
+//		request.setAttribute("lcuota", lcuota);
+		///// CUOTA DE PRUEBA
 		for(int i=0; i<nprestamo.getCuotas(); i++){
+			
+			Cuota ncuota = new Cuota();
+			fechven.add(Calendar.DAY_OF_YEAR, 30);
+			ncuota.setMonto(montoMensual);
+			ncuota.setInteres(valorInteres);
+			ncuota.setMontoTotal(total);
+			ncuota.setEstado(false);
+			ncuota.setFechaDeVencimiento(fechven.getTime());
+			ncuota.setPrestamo(nprestamo);
+			
+			cuotas.add(ncuota);
+			
+		}
+		servicioCuota.insertarCuota(cuotas);
+		
+//		servicioPrestamo.crearNuevoPrestamo(nprestamo);
+		
+		modelo.put("cuotas", cuotas);
+		
+		return new ModelAndView("realizarpagoafinan", modelo);		
+	}
+	
+	@RequestMapping(path = "/refinanciar", method = RequestMethod.POST)
+	public ModelAndView listaCuotasImp(Long idPrestamo, Long dni) {
+			ModelMap modelo=new ModelMap();
+			
+			//Prestamo prestamo = new Prestamo();
+			
+			List<Cuota> impagas=servicioCuota.consultarCuota(idPrestamo);
+			
+			Afiliado afiliado = servicioAfiliado.consultarAfiliadoDni(dni);
+			
+			Double montoTotalARefinanciar = 0.0;
+			int cuotasRestante = 0;
+			
+		    for(Cuota i :impagas) {
+				montoTotalARefinanciar += i.getMontoTotal();
+				cuotasRestante++;
+			}
+		    //modelo.put("prestamo", prestamo);
+		    modelo.put("afiliado", afiliado);
+		    modelo.put("idPrestamoRef", idPrestamo);
+			modelo.put("cuotas", impagas);	
+			modelo.put("MontoARefinanciar", montoTotalARefinanciar);
+			modelo.put("cuotasRestante",cuotasRestante);
+			return new ModelAndView("refinanciar",modelo);
+	
+	}
+
+	@RequestMapping(path = "/hacer-refinanciacion", method = RequestMethod.POST)
+	public ModelAndView refinanciarAlta(Long dni, Long idPrestamoRef, double newCapital, Integer cuotas, double interes) {
+		ModelMap modelo = new ModelMap();
+		
+		Integer nCapital = (int)newCapital;
+
+		// Se modificar la clasificacion del Afiliado (Perdida).
+		Afiliado afiliado = servicioAfiliado.consultarAfiliadoDni(dni);
+		afiliado.setClasificacion("Perdida");
+		servicioAfiliado.modificarAfiliado(afiliado);
+
+		// aqui tiene que estar el modificar el estado del prestamo (Refinanciado).
+		Prestamo prestamo = servicioPrestamo.consultarUnPrestamo(idPrestamoRef);
+		prestamo.setEstado("Refinanciado");
+		servicioPrestamo.modificarPrestamo(prestamo);
+		
+		Prestamo prestamoRef = new Prestamo();
+		prestamoRef.setValor(nCapital);
+		prestamoRef.setCuotas(cuotas);
+		prestamoRef.setInteres(interes);
+		prestamoRef.setAfiliado(afiliado);
+		//prestamoRef.setCuota(cuotasRef);
+		
+		// Creo un nuevo prestamo con sus respectivos cuotas.
+		Calendar fechven = Calendar.getInstance();
+		
+		List<Cuota> cuotasRef = new ArrayList<Cuota>();
+		
+		double montoMensual = nCapital/cuotas;
+		double valorInteres = (nCapital*interes)/12;
+		double total = montoMensual + valorInteres;
+		
+		for(int i=0; i<cuotas; i++){
 			fechven.add(Calendar.DAY_OF_YEAR, 30);
 			
 			Cuota ncuota = new Cuota();
@@ -83,20 +172,34 @@ public class ControladorPrestamo {
 			ncuota.setMontoTotal(total);
 			ncuota.setEstado(false);
 			ncuota.setFechaDeVencimiento(fechven.getTime());
+			ncuota.setPrestamo(prestamoRef);
 
-			cuotas.add(ncuota);
+			cuotasRef.add(ncuota);
 		}
+		//servicioPrestamo.crearNuevoPrestamo(prestamoRef);
+		servicioCuota.insertarCuota(cuotasRef);
 		
-		servicioCuota.insertarCuota(cuotas);
-		modelo.put("cuotas", cuotas);
-//		modelo.put("afiliadoid", prestamo.getIdAfiliado());
-		Afiliado afiliado0=servicioAfiliado.consultarIdAfiliado(prestamo.getIdAfiliado());
-		nprestamo.setAfiliado(afiliado0);
+		List<Cuota> nueCuotas = servicioCuota.consultarCuotaDelUltimoPrestamo();
+		modelo.put("cuotas", nueCuotas);
+		return new ModelAndView("listarcuotas",modelo);
+	}
 	
-//		servicioPrestamo.insertarPrestamo(nprestamo);
-		modelo.put("afiliado", false);
+	// Lo uso solo para mostrar las cuotas del nuevo prestamo.
+	@RequestMapping("/ultimoprestamo")
+	public ModelAndView irAListarcuotasDeUltimoPrestamo() {
+
+		ModelMap modelo=new ModelMap();
+		List<Cuota> cuotasDelUltimoPrestamo = servicioCuota.consultarCuotaDelUltimoPrestamo();
+		modelo.put("cuotas", cuotasDelUltimoPrestamo);
 		
-		return new ModelAndView("realizarpagoafinan", modelo);		
+		return new ModelAndView("listarcuotas",modelo);
+	}
+	
+	// si ingresa por la url "/refinanciar" sin pasar por los prestamos lo redirige al home.
+	@RequestMapping("/refinanciar")
+	public ModelAndView irAHome() {
+			
+		return new ModelAndView("home");
 	}
 	
 	

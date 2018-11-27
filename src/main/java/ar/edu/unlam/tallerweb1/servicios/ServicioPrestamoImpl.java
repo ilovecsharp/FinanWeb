@@ -20,4 +20,25 @@ public class ServicioPrestamoImpl implements ServicioPrestamo {
 	public List<Prestamo> consultarPrestamo() {
 		return servicioPrestamoDao.consultarPrestamo();
 	}
+	
+	@Override
+	public Prestamo consultarUnPrestamo(Long idPrestamo) {
+		return servicioPrestamoDao.consultarUnPrestamo(idPrestamo);
+	}
+	
+	@Override
+	public void crearNuevoPrestamo(Prestamo prestamoRef) {
+		servicioPrestamoDao.crearNuevoPrestamo(prestamoRef);
+	}
+	
+	@Override
+	public List<Prestamo> consultarPrestamo(Long dni) {
+		return servicioPrestamoDao.consultarPrestamo(dni);
+	}
+	
+	@Override
+	public void modificarPrestamo(Prestamo prestamo) {
+		servicioPrestamoDao.modificarPrestamo(prestamo);
+	}
+	
 }

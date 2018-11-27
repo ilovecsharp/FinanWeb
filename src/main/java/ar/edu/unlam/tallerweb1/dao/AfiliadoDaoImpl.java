@@ -24,26 +24,52 @@ public class AfiliadoDaoImpl implements AfiliadoDao {
     private SessionFactory sessionFactory;
 
 	@Override
-	public Afiliado consultarAfiliado(Afiliado afiliado) {
-		final Session session = sessionFactory.getCurrentSession();
-		return (Afiliado) session.createCriteria(Afiliado.class)
-				.add(Restrictions.eq("idAfiliado", afiliado.getIdAfiliado()))
-				.uniqueResult();
+	public List<Afiliado> consultarAfiliado() {
+		return (sessionFactory.getCurrentSession()
+				.createCriteria(Afiliado.class)
+				.add(Restrictions.isNotNull("nombre"))
+				.list());
 	}
+	
 	@Override
-	public Afiliado consultarIdAfiliado(Long id) {
+	public void agregarAfiliado (Afiliado afiliado) {
+		sessionFactory.getCurrentSession().save(afiliado);
+	}
+	
+	@Override
+	public void modificarAfiliado(Afiliado afiliado) {
+		sessionFactory.getCurrentSession().update(afiliado);
+	}
+	
+	@Override
+	public void eliminarAfiliado(Afiliado afiliado) {
+		sessionFactory.getCurrentSession().delete(afiliado);
+	}
+	
+	@Override
+	public List<Afiliado> buscarAfiliado(Afiliado afiliado){
+		return (sessionFactory.getCurrentSession().createCriteria(Afiliado.class)
+				.add(Restrictions.eq("nombre", afiliado.getNombre()))
+				.list());
+	}
+	
+	@Override
+	public Afiliado consultarAfiliado(Long idPrestamo) {
 		final Session session = sessionFactory.getCurrentSession();
 		return (Afiliado) session.createCriteria(Afiliado.class)
-				.add(Restrictions.eq("idAfiliado", id))
+				.createAlias("prestamo", "prestamoj")
+				.add(Restrictions.eq("prestamoj.idPrestamo", idPrestamo))
 				.uniqueResult();
 	}
 	
 	@Override
-	public List<Afiliado> consultarListaAfiliado() {
-		return (sessionFactory.getCurrentSession()
-				.createCriteria(Afiliado.class)
-				.list());
+	public Afiliado consultarAfiliadoDni(Long dni) {
+		final Session session = sessionFactory.getCurrentSession();
+		return (Afiliado) session.createCriteria(Afiliado.class)
+				.add(Restrictions.eq("dni", dni))
+				.uniqueResult();
 	}
+	
 //	@Override
 //	public List<Prestamo> listarPrestamos(Long id) {
 //		final Session session = sessionFactory.getCurrentSession();
@@ -58,7 +84,7 @@ public class AfiliadoDaoImpl implements AfiliadoDao {
 	
 	/*
 	 * private List<Prestamo> buscarPrestamos(Long id) {
-		// TODO Auto-generated method stub
+	
 		List<Prestamo> nvaLista=getSession().createCriteria(Prestamo.class)
 				.createAlias("afiliado","afiliadojoin")
 				.add(Restrictions.eq("afiliadojoin.idAfiliado", id))
